@@ -1,0 +1,5 @@
+<configuration>
+    <!-- Отключаем все логирование для тестов -->
+    <root level="OFF">
+    </root>
+</configuration>
