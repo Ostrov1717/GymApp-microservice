@@ -12,12 +12,12 @@ import static org.example.gym.common.ApiUrls.CLIENT_URL;
 @FeignClient(name = "trainer-work-accounting-service")
 public interface ServiceTrainerWorkingHours {
     @GetMapping(CLIENT_URL)
-    @CircuitBreaker(name = "default", fallbackMethod = "fallbackGetData")
+    @CircuitBreaker(name = "myCircuitBreaker", fallbackMethod = "fallbackGetData")
     TrainerWorkingHoursDTO getMonthlyHours(@RequestParam("trainerUsername") String trainerUsername,
                                            @RequestHeader(value = "X-Transaction-Id", required = false) String transactionId);
 
     @PostMapping(CLIENT_URL)
-    @CircuitBreaker(name = "default", fallbackMethod = "fallbackGetData")
+    @CircuitBreaker(name = "myCircuitBreaker")
     void addTraining(@RequestBody TrainerTrainingDTO record,
                      @RequestHeader(value = "X-Transaction-Id", required = false) String transactionId);
 
