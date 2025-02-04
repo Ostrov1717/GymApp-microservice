@@ -7,21 +7,15 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="shared-dto" />
+        <module name="config-server" />
         <module name="gym" />
-        <module name="service-registry" />
-      </profile>
-      <profile name="Annotation profile for trainer-work-accounting-service" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <processorPath>
-          <entry name="$MAVEN_REPOSITORY$/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-        </processorPath>
+        <module name="shared-dto" />
         <module name="trainer-work-accounting-service" />
+        <module name="service-registry" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="config-server" target="17" />
       <module name="gym" target="17" />
       <module name="service-registry" target="17" />
       <module name="shared-dto" target="17" />
@@ -30,6 +24,7 @@
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="config-server" options="-parameters" />
       <module name="gym" options="-parameters" />
       <module name="service-registry" options="-parameters" />
       <module name="trainer-work-accounting-service" options="-parameters" />

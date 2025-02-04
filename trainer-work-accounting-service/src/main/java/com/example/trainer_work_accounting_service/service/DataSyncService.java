@@ -3,6 +3,7 @@ package com.example.trainer_work_accounting_service.service;
 import com.example.trainer_work_accounting_service.client.GymAppClient;
 import com.example.trainer_work_accounting_service.dto.AuthResponse;
 import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.shareddto.TrainerTrainingDTO;
 import org.slf4j.MDC;
@@ -15,16 +16,13 @@ import java.util.List;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class DataSyncService {
     private final GymAppClient gymAppClient;
     private final TrainingRecordService service;
+    private final TrainingDurationService durationService;
     @Value("${app.security.password}")
     String CREDENTIALS;
-
-    public DataSyncService(GymAppClient gymAppClient, TrainingRecordService service) {
-        this.gymAppClient = gymAppClient;
-        this.service = service;
-    }
 
     @PostConstruct
     public void syncDataOnStartup() {
@@ -36,6 +34,7 @@ public class DataSyncService {
             List<TrainerTrainingDTO> dataList = gymAppClient.getAllTrainings("Bearer " + response.token(), transactionId);
             for (TrainerTrainingDTO dto : dataList) {
                 service.addTrainingRecord(dto);
+                durationService.addTraining(dto);
             }
             log.info("Data synchronized successfully.");
         } catch (Exception e) {
