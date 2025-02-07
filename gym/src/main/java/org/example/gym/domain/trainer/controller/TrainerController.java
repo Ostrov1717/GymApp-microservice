@@ -3,15 +3,18 @@ package org.example.gym.domain.trainer.controller;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.example.gym.common.exception.ServiceUnavailableException;
+import org.example.gym.domain.messaging.MessageSenderService;
+import org.example.gym.domain.messaging.ResponseStorageService;
 import org.example.gym.domain.trainer.dto.TrainerDTO;
-import org.example.gym.domain.trainer.client.ServiceTrainerWorkingHours;
 import org.example.gym.domain.trainer.service.TrainerService;
 import org.example.gym.domain.training.entity.TrainingType;
 import org.example.gym.domain.training.entity.TrainingTypeName;
 import org.example.gym.domain.user.dto.UserDTO;
 import org.example.gym.domain.user.service.UserService;
 import org.example.shareddto.TrainerWorkingHoursDTO;
-import org.slf4j.MDC;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,8 +23,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import static org.example.gym.common.ApiUrls.*;
+import static org.example.shareddto.SharedConstants.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -31,7 +36,8 @@ import static org.example.gym.common.ApiUrls.*;
 public class TrainerController {
     private final TrainerService trainerService;
     private final UserService userService;
-    private final ServiceTrainerWorkingHours serviceTrainerWorkingHours;
+    private final MessageSenderService messageSenderService;
+    private final ResponseStorageService responseStorageService;
 
     //    2. Trainer Registration (POST method)
     @PostMapping(REGISTER_TRAINER)
@@ -91,8 +97,22 @@ public class TrainerController {
     // Get Trainer yearly working hours
     @GetMapping(WORKING_HOURS)
     public TrainerWorkingHoursDTO getTrainerWorkingHours() {
-        log.info("GET request to " + WORKING_HOURS + " with trainer username={}", getAuthenticatedUsername());
+        String trainerUsername = getAuthenticatedUsername();
+        log.info("GET request to " + WORKING_HOURS + " with trainer username={}", trainerUsername);
         log.info("Request to microservice");
-        return serviceTrainerWorkingHours.getMonthlyHours(getAuthenticatedUsername(), MDC.get("transactionId"));
+        messageSenderService.sendRequest(NAME_OF_QUEUE_MAIN_TO_MICROSERVICE_REQUEST, TYPE_OF_REQUEST_1, trainerUsername);
+        return responseStorageService.getResponseFuture(trainerUsername)
+                .orTimeout(10, TimeUnit.SECONDS)
+                .exceptionally(ex -> {
+                    throw new ServiceUnavailableException("There isn't answer from microservice for trainer: " + trainerUsername);
+                }).join();
+    }
+
+    @GetMapping(TRAININGS_QOUNTITY)
+    public ResponseEntity<String> getTrainerQuontity() {
+        String trainerUsername = getAuthenticatedUsername();
+        log.info("GET request to " + TRAININGS_QOUNTITY + " with trainer username={}", trainerUsername);
+        messageSenderService.sendRequest(NAME_OF_QUEUE_MAIN_TO_MICROSERVICE_REQUEST, TYPE_OF_REQUEST_2, trainerUsername);
+        return ResponseEntity.status(HttpStatus.OK).body("Request send to microservice !");
     }
 }

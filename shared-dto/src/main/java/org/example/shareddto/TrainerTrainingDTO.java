@@ -9,14 +9,11 @@ public record TrainerTrainingDTO (
     String lastName,
     boolean active,
     LocalDateTime trainingDate,
-    Duration trainingDuration
+    Duration trainingDuration,
+    ActionType action
 ){
-    public TrainerTrainingDTO(String username, String firstName, String lastName, boolean active, LocalDateTime trainingDate, Duration trainingDuration) {
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.active = active;
-        this.trainingDate = trainingDate;
-        this.trainingDuration = trainingDuration;
+    public TrainerTrainingDTO(String username, String firstName, String lastName, boolean active,
+                              LocalDateTime trainingDate, Duration trainingDuration, String actionType) {
+        this(username, firstName, lastName, active, trainingDate, trainingDuration, ActionType.valueOf(actionType));
     }
 }

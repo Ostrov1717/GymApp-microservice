@@ -1,2 +1,4 @@
-package org.example.gym.domain.trainer.dto;public record RequestToMicroservice() {
+package org.example.shareddto;
+
+public record RequestToMicroservice(String nameOfRequest,String username) {
 }
