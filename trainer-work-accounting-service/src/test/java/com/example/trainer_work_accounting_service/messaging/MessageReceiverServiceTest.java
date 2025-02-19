@@ -1,7 +1,6 @@
 package com.example.trainer_work_accounting_service.messaging;
 
-import com.example.trainer_work_accounting_service.service.TrainingDurationService;
-import com.example.trainer_work_accounting_service.service.TrainingRecordService;
+import com.example.trainer_work_accounting_service.service.TrainerService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.jms.JMSException;
@@ -26,9 +25,7 @@ public class MessageReceiverServiceTest {
     @InjectMocks
     private MessageReceiverService messageReceiverService;
     @Mock
-    private TrainingRecordService trainingRecordService;
-    @Mock
-    private TrainingDurationService trainingDurationService;
+    private TrainerService trainerService;
     @Mock
     private ObjectMapper objectMapper;
 
@@ -36,7 +33,7 @@ public class MessageReceiverServiceTest {
     @BeforeEach
     public void setUp() {
         messageReceiverService =
-                new MessageReceiverService(trainingRecordService, trainingDurationService, objectMapper);
+                new MessageReceiverService(trainerService, objectMapper);
     }
 
     @Test
@@ -51,8 +48,7 @@ public class MessageReceiverServiceTest {
         messageReceiverService.receiveMessageOneTraining(textMessage);
 
         assertEquals(TRANSACTIONAL_ID, MDC.get("transactionId"));
-        verify(trainingRecordService).addTrainingRecord(dto);
-        verify(trainingDurationService).addTraining(dto);
+        verify(trainerService).addTraining(dto);
     }
 
     @Test
@@ -67,8 +63,7 @@ public class MessageReceiverServiceTest {
         messageReceiverService.receiveMessageOneTraining(textMessage);
 
         assertEquals(TRANSACTIONAL_ID, MDC.get("transactionId"));
-        verify(trainingRecordService).deleteTrainingRecord(dto);
-        verify(trainingDurationService).addTraining(dto);
+        verify(trainerService).deleteTraining(dto);
     }
 
     @Test
@@ -82,8 +77,7 @@ public class MessageReceiverServiceTest {
                 });
 
         assertDoesNotThrow(() -> messageReceiverService.receiveMessageOneTraining(textMessage));
-        verify(trainingRecordService, never()).addTrainingRecord(any());
-        verify(trainingDurationService, never()).addTraining(any());
+        verify(trainerService, never()).addTraining(any());
     }
 
     @Test
@@ -92,11 +86,11 @@ public class MessageReceiverServiceTest {
         when(textMessage.getText()).thenReturn(USERNAME);
         when(textMessage.getStringProperty("transactionId")).thenReturn(TRANSACTIONAL_ID);
         when(textMessage.getStringProperty("type_of_request")).thenReturn(TYPE_OF_REQUEST_1);
-        doNothing().when(trainingDurationService).getTrainingSummaryByUsername(USERNAME);
+        doNothing().when(trainerService).getTrainingSummaryByUsername(USERNAME);
 
         messageReceiverService.receiveMainAppRequest(textMessage);
 
-        verify(trainingDurationService).getTrainingSummaryByUsername(USERNAME);
+        verify(trainerService).getTrainingSummaryByUsername(USERNAME);
     }
 
     @Test

@@ -3,17 +3,17 @@ package org.example.gym.domain.training.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.example.gym.common.utils.DurationEditor;
-import org.example.gym.config.MetricsFilter;
 import org.example.gym.domain.training.dto.TrainingDTO;
 import org.example.gym.domain.training.entity.TrainingType;
 import org.example.gym.domain.training.service.TrainingService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.InitBinder;
@@ -28,16 +28,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(value = TrainingController.class, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = MetricsFilter.class))
+@SpringBootTest
+@TestPropertySource("classpath:application-test.properties")
+@AutoConfigureMockMvc
 public class TrainingControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
-
     @Autowired
     private ObjectMapper mapper;
-
-    @MockBean
+    @MockitoBean
     private TrainingService trainingService;
 
     @InitBinder
@@ -47,6 +46,7 @@ public class TrainingControllerTest {
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void getTraineeTrainingsTest() {
         List<TrainingDTO.Response.TrainingProfileForTrainee> trainings = List.of(
                 new TrainingDTO.Response.TrainingProfileForTrainee(TRAINING_NAME, PERIOD_TO, TRAINING_TYPE, DURATION, TRAINER_USERNAME),
@@ -77,6 +77,7 @@ public class TrainingControllerTest {
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void getTrainerTrainingsTest() {
         List<TrainingDTO.Response.TrainingProfileForTrainer> trainings = List.of(
                 new TrainingDTO.Response.TrainingProfileForTrainer("Fitness evening class", PERIOD_TO, TRAINING_TYPE, DURATION, TRAINEE_USERNAME),
@@ -105,6 +106,7 @@ public class TrainingControllerTest {
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void createTrainingTest() {
         TrainingDTO.Request.NewTraining newTraining =
                 new TrainingDTO.Request.NewTraining(TRAINEE_USERNAME, TRAINER_USERNAME, TRAINING_NAME, PERIOD_TO, DURATION);

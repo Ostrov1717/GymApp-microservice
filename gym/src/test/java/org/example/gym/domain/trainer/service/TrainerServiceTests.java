@@ -16,6 +16,7 @@ import org.example.gym.domain.training.entity.TrainingTypeName;
 import org.example.gym.domain.user.service.UserService;
 import org.junit.jupiter.api.*;
 import org.mockito.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,11 +35,13 @@ public class TrainerServiceTests {
     private TrainingTypeRepository trainingTypeRepository;
 
     @Mock
+    private PasswordEncoder passwordEncoder;
+
+    @Mock
     private TrainerMapper trainerMapper;
     private String firstName = "John";
     private String lastName = "Doe";
     private String username = "John.Doe";
-
     private String password = "password12";
     TrainingTypeName trainingTypeName = TrainingTypeName.YOGA;
     private TrainingType specialization = new TrainingType(trainingTypeName.name());
@@ -62,6 +65,7 @@ public class TrainerServiceTests {
         when(trainerRepository.save(any(Trainer.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(userservice.generatePassword()).thenReturn(password);
         when(userservice.generateUserName("John", "Doe")).thenReturn("John.Doe");
+        when(passwordEncoder.encode(password)).thenReturn("hashedPassword");
 
         UserDTO.Response.Login result = trainerService.create(firstName, lastName, trainingTypeName);
 
@@ -94,14 +98,13 @@ public class TrainerServiceTests {
     void findByUsername_success() {
         when(trainerRepository.findByUserUsername(username)).thenReturn(Optional.of(BEST_TRAINER));
 
-        TrainerDTO.Response.TrainerProfile result = trainerService.findByUsername(username, password);
+        TrainerDTO.Response.TrainerProfile result = trainerService.findByUsername(username);
 
         assertNotNull(result);
         assertEquals(firstName, result.getFirstName());
         assertEquals(lastName, result.getLastName());
         assertFalse(result.isActive());
         assertEquals("YOGA", result.getSpecialization().getTrainingType());
-        verify(userservice, times(1)).authenticate(username, password);
         verify(trainerRepository, times(1)).findByUserUsername(username);
     }
 
@@ -111,10 +114,9 @@ public class TrainerServiceTests {
     void findByUsername_trainerNotFound() {
         when(trainerRepository.findByUserUsername(username)).thenReturn(Optional.empty());
         Exception exception = assertThrows(UserNotFoundException.class, () ->
-                trainerService.findByUsername(username, password));
+                trainerService.findByUsername(username));
 
         assertEquals("Trainer with username: " + username + " not found.", exception.getMessage());
-        verify(userservice, times(1)).authenticate(username, password);
         verify(trainerRepository, times(1)).findByUserUsername(username);
     }
 
@@ -128,13 +130,12 @@ public class TrainerServiceTests {
         when(trainerRepository.findByUserUsername(username)).thenReturn(Optional.of(BEST_TRAINER));
         when(trainingTypeRepository.findByTrainingType(trainingTypeName.name())).thenReturn(Optional.of(specialization));
 
-        TrainerDTO.Response.TrainerProfile updatedProfile = trainerService.update(newFirstName, newLastName, username, password, trainingTypeName, isActive);
+        TrainerDTO.Response.TrainerProfile updatedProfile = trainerService.update(newFirstName, newLastName, username, trainingTypeName, isActive);
 
         assertEquals(newFirstName, BEST_TRAINER.getUser().getFirstName());
         assertEquals(newLastName, BEST_TRAINER.getUser().getLastName());
         assertEquals(specialization, BEST_TRAINER.getSpecialization());
         assertTrue(BEST_TRAINER.getUser().isActive(), "The trainer's active status should be updated.");
-        verify(userservice, times(1)).authenticate(username, password);
         verify(trainerRepository, times(1)).findByUserUsername(username);
         verify(trainingTypeRepository, times(1)).findByTrainingType(trainingTypeName.name());
     }
@@ -157,10 +158,9 @@ public class TrainerServiceTests {
             mockedMapper.when(() -> TrainerMapper.toSetTrainerSummury(trainers))
                     .thenReturn(trainerSummaries);
 
-            Set<TrainerDTO.Response.TrainerSummury> result = trainerService.getAvailableTrainers(username, password);
+            Set<TrainerDTO.Response.TrainerSummury> result = trainerService.getAvailableTrainers(username);
             assertNotNull(result);
             assertEquals(2, result.size());
-            verify(userservice, times(1)).authenticate(username, password);
             assertEquals(trainerSummaries, result);
         }
     }

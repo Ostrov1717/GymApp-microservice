@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.example.gym.domain.trainee.dto.TraineeDTO;
 import org.example.gym.domain.training.entity.TrainingType;
 
@@ -43,6 +44,7 @@ public enum TrainerDTO {
 
         @Data
         @AllArgsConstructor
+        @NoArgsConstructor
         @Schema(description = "Request DTO contains details about the Trainer")
         public static class TrainerRegistration implements FirstName, LastName, Specialization {
             @NotBlank(message = "{first.name.required}")
@@ -58,6 +60,7 @@ public enum TrainerDTO {
 
         @Data
         @AllArgsConstructor
+        @NoArgsConstructor
         @Schema(description = "Request DTO contains details about the Trainer")
         public static class TrainerUpdate implements FirstName, LastName, Specialization, Active {
             @NotBlank(message = "{first.name.required}")

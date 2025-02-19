@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 
 public class TestConstants {
+    public static String ID = "1";
     public static String USERNAME = "Brad.Pitt";
     public static String FIRST_NAME = "Brad";
     public static String LAST_NAME = "Pitt";

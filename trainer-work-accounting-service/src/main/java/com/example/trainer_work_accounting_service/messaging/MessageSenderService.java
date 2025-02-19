@@ -9,6 +9,8 @@ import org.slf4j.MDC;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 
+import static org.example.shareddto.SharedConstants.TRANSACTION_ID;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -20,7 +22,7 @@ public class MessageSenderService {
         try {
             String jsonMessage = objectMapper.writeValueAsString(dto);
             jmsTemplate.convertAndSend(queueName, jsonMessage, msg -> {
-                msg.setStringProperty("transactionId", MDC.get("transactionId"));
+                msg.setStringProperty(TRANSACTION_ID, MDC.get(TRANSACTION_ID));
                 return msg;
             });
             log.info("Information about {} working hours sent to main app", dto.username());

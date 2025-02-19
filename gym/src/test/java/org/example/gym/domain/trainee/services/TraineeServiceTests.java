@@ -17,6 +17,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -34,6 +35,9 @@ public class TraineeServiceTests {
     private UserService userservice;
     @Mock
     private TraineeMetrics traineeMetrics;
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     private String firstName = "John";
     private String lastName = "Doe";
     private String username="John.Doe";
@@ -55,7 +59,8 @@ public class TraineeServiceTests {
         when(traineeRepository.save(any(Trainee.class))).thenReturn(BEST_TRAINEE);
         when(userservice.generatePassword()).thenReturn(password);
         when(userservice.generateUserName("John","Doe")).thenReturn("John.Doe");
-        Mockito.doNothing().when(traineeMetrics).incrementNewTrainee();
+        when(passwordEncoder.encode(password)).thenReturn("hashedPassword");
+        doNothing().when(traineeMetrics).incrementNewTrainee();
 
         UserDTO.Response.Login result = traineeService.create(firstName, lastName, address, dob);
 
@@ -73,7 +78,7 @@ public class TraineeServiceTests {
     void findByUsername_success() {
         when(traineeRepository.findByUserUsername(username)).thenReturn(Optional.of(BEST_TRAINEE));
 
-        TraineeDTO.Response.TraineeProfile result = traineeService.findByUsername(username, password);
+        TraineeDTO.Response.TraineeProfile result = traineeService.findByUsername(username);
 
         assertNotNull(result);
         assertEquals("John", result.getFirstName());
@@ -81,7 +86,6 @@ public class TraineeServiceTests {
         assertTrue(result.isActive());
         assertEquals("California", result.getAddress());
         assertEquals("1990-01-01", result.getDateOfBirth().toString());
-        verify(userservice, times(1)).authenticate(username,password);
         verify(traineeRepository, times(1)).findByUserUsername(username);
     }
     @Test
@@ -90,10 +94,9 @@ public class TraineeServiceTests {
     void findByUsername_traineeNotFound() {
         when(traineeRepository.findByUserUsername(username)).thenReturn(Optional.empty());
         Exception exception = assertThrows(UserNotFoundException.class, () ->
-                traineeService.findByUsername(username, password));
+                traineeService.findByUsername(username));
 
         assertEquals("Trainee with username: " + username + " not found.", exception.getMessage());
-        verify(userservice, times(1)).authenticate(username, password);
         verify(traineeRepository, times(1)).findByUserUsername(username);
     }
     @Test
@@ -107,14 +110,13 @@ public class TraineeServiceTests {
         boolean newIsActive = true;
         when(traineeRepository.findByUserUsername(username)).thenReturn(Optional.of(BEST_TRAINEE));
 
-        TraineeDTO.Response.TraineeProfileFull result = traineeService.update(newFirstName,newLastName, username, password, newAddress, newDateOfBirth, newIsActive);
+        TraineeDTO.Response.TraineeProfileFull result = traineeService.update(newFirstName,newLastName, username, newAddress, newDateOfBirth, newIsActive);
 
         assertEquals(newFirstName, BEST_TRAINEE.getUser().getFirstName());
         assertEquals(newLastName, BEST_TRAINEE.getUser().getLastName());
         assertEquals(newAddress, BEST_TRAINEE.getAddress());
         assertEquals(newDateOfBirth, BEST_TRAINEE.getDateOfBirth());
         assertEquals(newIsActive, BEST_TRAINEE.getUser().isActive());
-        verify(userservice, times(1)).authenticate(username, password);
         verify(traineeRepository, times(1)).findByUserUsername(username);
     }
     @Test
@@ -123,9 +125,8 @@ public class TraineeServiceTests {
     void deleteTrainee_success() {
         when(traineeRepository.findByUserUsername(username)).thenReturn(Optional.of(BEST_TRAINEE));
 
-        traineeService.delete(username, password);
+        traineeService.delete(username);
 
-        verify(userservice, times(1)).authenticate(username, password);
         verify(traineeRepository, times(1)).findByUserUsername(username);
         verify(traineeRepository, times(1)).delete(BEST_TRAINEE);
     }
@@ -141,9 +142,8 @@ public class TraineeServiceTests {
         newTrainers.add(trainer2);
         when(traineeRepository.findByUserUsername(username)).thenReturn(Optional.of(trainee));
 
-        Set<TrainerDTO.Response.TrainerSummury> result = traineeService.updateTraineeTrainers(username, password, newTrainers);
+        Set<TrainerDTO.Response.TrainerSummury> result = traineeService.updateTraineeTrainers(username, newTrainers);
 
-        verify(userservice, times(1)).authenticate(username, password);
         verify(traineeRepository, times(1)).save(trainee);
         assertEquals(2, result.size(), "The size of returned trainers should match the new trainers set.");
     }

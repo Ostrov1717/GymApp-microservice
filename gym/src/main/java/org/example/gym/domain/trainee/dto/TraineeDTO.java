@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.example.gym.domain.trainer.dto.TrainerDTO;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -56,6 +57,7 @@ public enum TraineeDTO {
 
         @Data
         @AllArgsConstructor
+        @NoArgsConstructor
         @Schema(description = "Request DTO contains details about the Trainee")
         public static class TraineeRegistration implements FirstName, LastName, DateOfBirth, Address {
             @NotBlank(message = "First name is required")
@@ -73,6 +75,7 @@ public enum TraineeDTO {
 
         @Data
         @AllArgsConstructor
+        @NoArgsConstructor
         @Schema(description = "Request DTO contains details about the Trainee")
         public static class TraineeUpdate implements FirstName, LastName, DateOfBirth, Address, Active {
             @NotBlank(message = "{first.name.required}")
@@ -91,6 +94,7 @@ public enum TraineeDTO {
         }
 
         @Data
+        @NoArgsConstructor
         @Schema(description = "Request DTO contains details about the Trainee")
         public static class UpdateTrainers implements TrainersUsernames {
             @NotNull(message = "Trainer's set is required")

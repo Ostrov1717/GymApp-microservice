@@ -9,10 +9,12 @@ import org.example.gym.domain.user.controller.UserAPIController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest
+@TestPropertySource("classpath:application-test.properties")
 public class SmokeTest {
 
     @Autowired

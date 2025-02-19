@@ -1,22 +1,22 @@
 package com.example.trainer_work_accounting_service.domain;
 
-import jakarta.persistence.*;
-import lombok.Getter;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Document(collection = "trainers")
+@Data
+@AllArgsConstructor
 @NoArgsConstructor
-@Getter
-@Setter
 public class Trainer {
-
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
     private String username;
 
@@ -26,14 +26,25 @@ public class Trainer {
 
     private boolean active;
 
-    @OneToMany(mappedBy = "trainer", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private List<YearSummary> yearSummaries=new ArrayList<>();
+    private List<YearSummary> yearSummaries;
 
-    public Trainer(String username, String firstName, String lastName, boolean active) {
-        this.username = username;
-        this.firstName = firstName;
-        this.lastName = lastName;
-        this.active = active;
-        this.yearSummaries=new ArrayList<>();
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class YearSummary {
+
+        private int year;
+
+        private List<MonthSummary> monthDurationList;
+    }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class MonthSummary {
+
+        private String month;
+        @Min(value=601, message = "Duration must be at least 601 seconds")
+        private long duration;
     }
 }

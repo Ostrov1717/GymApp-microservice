@@ -3,7 +3,6 @@ package org.example.gym.domain.trainer.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.example.gym.common.exception.WrongTrainingTypeException;
-import org.example.gym.config.MetricsFilter;
 import org.example.gym.domain.trainer.dto.TrainerDTO;
 import org.example.gym.domain.trainer.service.TrainerService;
 import org.example.gym.domain.training.entity.TrainingType;
@@ -12,11 +11,12 @@ import org.example.gym.domain.user.dto.UserDTO;
 import org.example.gym.domain.user.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.FilterType;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
@@ -24,14 +24,16 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.example.gym.common.ApiUrls.*;
+import static org.example.gym.common.TestConstants.*;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.example.gym.common.ApiUrls.*;
-import static org.example.gym.common.TestConstants.*;
 
-@WebMvcTest(value = TrainerController.class, excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = MetricsFilter.class))
+@SpringBootTest
+@TestPropertySource("classpath:application-test.properties")
+@AutoConfigureMockMvc
 public class TrainerControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -39,14 +41,15 @@ public class TrainerControllerTest {
     @Autowired
     private ObjectMapper mapper;
 
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
-    @MockBean
+    @MockitoBean
     private TrainerService trainerService;
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void trainerRegistrationTest_Success() {
         TrainerDTO.Request.TrainerRegistration validRequest =
                 new TrainerDTO.Request.TrainerRegistration(FIRST_NAME, LAST_NAME, SPECIALIZATION);
@@ -66,6 +69,7 @@ public class TrainerControllerTest {
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void trainerRegistrationTest_Failure() {
         TrainingType wrongSpecialization = new TrainingType("BREAK_DANCE");
         TrainerDTO.Request.TrainerRegistration validRequest =
@@ -83,32 +87,31 @@ public class TrainerControllerTest {
 
     @Test
     @SneakyThrows
+    @WithMockUser(username = USERNAME)
     void getTrainerProfileTest() {
         TrainerDTO.Response.TrainerProfile profileResponse =
                 new TrainerDTO.Response.TrainerProfile(FIRST_NAME, LAST_NAME, SPECIALIZATION, true, new HashSet<>());
-        when(trainerService.findByUsername(USERNAME, PASSWORD)).thenReturn(profileResponse);
-        mockMvc.perform(get(TRAINER_BASE + GET_TRAINER_PROFILE)
-                        .param("username", USERNAME)
-                        .param("password", PASSWORD)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+        when(trainerService.findByUsername(USERNAME)).thenReturn(profileResponse);
+        mockMvc.perform(get(TRAINER_BASE + GET_TRAINER_PROFILE))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.firstName").value("Brad"))
                 .andExpect(jsonPath("$.lastName").value("Pitt"))
                 .andExpect(jsonPath("$.specialization.trainingType").value("RESISTANCE"))
                 .andExpect(jsonPath("$.active").value("true"))
                 .andExpect(jsonPath("$.trainees").isArray());
-        verify(trainerService, times(1)).findByUsername(USERNAME, PASSWORD);
+        verify(trainerService, times(1)).findByUsername(USERNAME);
     }
 
     @Test
     @SneakyThrows
+    @WithMockUser(username = USERNAME)
     void updateTrainerProfileTest() {
         TrainerDTO.Request.TrainerUpdate trainerUpdate =
-                new TrainerDTO.Request.TrainerUpdate(USERNAME, PASSWORD, FIRST_NAME, LAST_NAME, SPECIALIZATION, true);
+                new TrainerDTO.Request.TrainerUpdate(FIRST_NAME, LAST_NAME, SPECIALIZATION, true);
         TrainerDTO.Response.TrainerProfile trainerNewProfile =
                 new TrainerDTO.Response.TrainerProfile(FIRST_NAME, LAST_NAME, SPECIALIZATION, true, new HashSet<>());
         when(trainerService
-                .update(FIRST_NAME, LAST_NAME, USERNAME, PASSWORD, TrainingTypeName.valueOf(SPECIALIZATION.getTrainingType()), true))
+                .update(FIRST_NAME, LAST_NAME, USERNAME, TrainingTypeName.valueOf(SPECIALIZATION.getTrainingType()), true))
                 .thenReturn(trainerNewProfile);
         mockMvc.perform(put(TRAINER_BASE + UPDATE_TRAINER)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -120,57 +123,58 @@ public class TrainerControllerTest {
                 .andExpect(jsonPath("$.active").value("true"))
                 .andExpect(jsonPath("$.trainees").isArray());
         verify(trainerService, times(1))
-                .update(FIRST_NAME, LAST_NAME, USERNAME, PASSWORD, TrainingTypeName.valueOf(SPECIALIZATION.getTrainingType()), true);
+                .update(FIRST_NAME, LAST_NAME, USERNAME, TrainingTypeName.valueOf(SPECIALIZATION.getTrainingType()), true);
     }
 
     @Test
     @SneakyThrows
+    @WithMockUser(username = USERNAME)
     void getNotAssingTrainersTest() {
         Set<TrainerDTO.Response.TrainerSummury> trainers = Set.of(
                 new TrainerDTO.Response.TrainerSummury("Monica.Dobs", "Monica", "Dobs", null),
                 new TrainerDTO.Response.TrainerSummury("Wallace.Tim", "Wallace", "Tim", null));
-        when(trainerService.getAvailableTrainers(USERNAME, PASSWORD)).thenReturn(trainers);
-        mockMvc.perform(get(TRAINER_BASE + GET_NOT_ASSIGN_TRAINERS)
-                        .param("username", USERNAME)
-                        .param("password", PASSWORD)
-                        .contentType(MediaType.APPLICATION_FORM_URLENCODED))
+        when(trainerService.getAvailableTrainers(USERNAME)).thenReturn(trainers);
+        mockMvc.perform(get(TRAINER_BASE + GET_NOT_ASSIGN_TRAINERS))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[*].username",
                         containsInAnyOrder("Monica.Dobs", "Wallace.Tim")));
-        verify(trainerService, times(1)).getAvailableTrainers(USERNAME, PASSWORD);
+        verify(trainerService, times(1)).getAvailableTrainers(USERNAME);
     }
 
     @Test
     @SneakyThrows
+    @WithMockUser(username = USERNAME)
     void activateTrainerTest() {
-        UserDTO.Request.ActivateOrDeactivate trainer = new UserDTO.Request.ActivateOrDeactivate(USERNAME, PASSWORD, true);
-        when(userService.activate(USERNAME, PASSWORD)).thenReturn(true);
+        UserDTO.Request.ActivateOrDeactivate trainer = new UserDTO.Request.ActivateOrDeactivate(true);
+        when(userService.activate(USERNAME)).thenReturn(true);
         mockMvc.perform(patch(TRAINER_BASE + UPDATE_TRAINER_STATUS)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(trainer)))
                 .andExpect(status().isOk());
-        verify(userService, times(1)).activate(USERNAME, PASSWORD);
-        verify(userService, never()).deactivate(anyString(), anyString());
+        verify(userService, times(1)).activate(USERNAME);
+        verify(userService, never()).deactivate(anyString());
     }
 
     @Test
     @SneakyThrows
+    @WithMockUser(username = USERNAME)
     void deactivateTrainerTest() {
-        UserDTO.Request.ActivateOrDeactivate trainer = new UserDTO.Request.ActivateOrDeactivate(USERNAME, PASSWORD, false);
-        when(userService.deactivate(USERNAME, PASSWORD)).thenReturn(false);
+        UserDTO.Request.ActivateOrDeactivate trainer = new UserDTO.Request.ActivateOrDeactivate(false);
+        when(userService.deactivate(USERNAME)).thenReturn(false);
         mockMvc.perform(patch(TRAINER_BASE + UPDATE_TRAINER_STATUS)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(mapper.writeValueAsString(trainer)))
                 .andExpect(status().isOk());
-        verify(userService, times(1)).deactivate(USERNAME, PASSWORD);
-        verify(userService, never()).activate(anyString(), anyString());
+        verify(userService, times(1)).deactivate(USERNAME);
+        verify(userService, never()).activate(anyString());
 
     }
 
     @Test
     @SneakyThrows
+    @WithMockUser
     void getTrainingTypesTest() {
         List<TrainingType> expectedTrainingTypes = Arrays.asList(
                 new TrainingType("FITNESS"),
