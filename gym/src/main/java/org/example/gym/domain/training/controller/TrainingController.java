@@ -48,11 +48,6 @@ public class TrainingController {
                 dto.getTraineeUsername(), dto.getTrainingName(), dto.getTrainingDate(), dto.getTrainingDuration(), dto.getTrainerUsername());
         trainingService.create(dto.getTraineeUsername(), dto.getTrainerUsername(), dto.getTrainingName(), dto.getTrainingDate(), dto.getTrainingDuration());
     }
-    @GetMapping(ALL_TRAININGS)
-    public List<TrainerTrainingDTO> allTraining(){
-        log.info("GET request from microservice for all trainings");
-        return trainingService.findAllTrainings();
-    }
 
     @InitBinder
     public void init(WebDataBinder binder) {

@@ -1,13 +1,14 @@
 package org.example.gym.domain.training.service;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.transaction.Transactional;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.gym.common.exception.UserNotFoundException;
+import org.example.gym.domain.messaging.MessageSenderService;
 import org.example.gym.domain.trainee.entity.Trainee;
 import org.example.gym.domain.trainee.repository.TraineeRepository;
-import org.example.gym.domain.trainer.client.ServiceTrainerWorkingHours;
 import org.example.gym.domain.trainer.entity.Trainer;
 import org.example.gym.domain.trainer.repository.TrainerRepository;
 import org.example.gym.domain.training.dto.TrainingDTO;
@@ -15,13 +16,15 @@ import org.example.gym.domain.training.dto.TrainingMapper;
 import org.example.gym.domain.training.entity.Training;
 import org.example.gym.domain.training.entity.TrainingType;
 import org.example.gym.domain.training.repository.TrainingRepository;
+import org.example.shareddto.ActionType;
 import org.example.shareddto.TrainerTrainingDTO;
-import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static org.example.shareddto.SharedConstants.NAME_OF_QUEUE_MAIN_TO_MICROSERVICE;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +33,8 @@ public class TrainingService {
     private final TrainingRepository trainingRepository;
     private final TraineeRepository traineeRepository;
     private final TrainerRepository trainerRepository;
-    private final ServiceTrainerWorkingHours serviceTrainerWorkingHours;
+    private final MessageSenderService messageSenderService;
+
 
     @Transactional
     public void create(@NonNull String traineeUsername, @NonNull String trainerUsername, @NonNull String trainingName, @NonNull LocalDateTime trainingDate, @NonNull Duration duration) {
@@ -49,8 +53,9 @@ public class TrainingService {
         log.info("Training has been created: name={}, date={}", trainingName, trainingDate);
         log.info("Training record was transferred to microservice");
         trainingRepository.save(training);
-        serviceTrainerWorkingHours.addTraining(new TrainerTrainingDTO(trainerUsername, trainer.getUser().getFirstName(),
-                trainer.getUser().getLastName(), trainer.getUser().isActive(), trainingDate, duration), MDC.get("transactionId"));
+        TrainerTrainingDTO dto = new TrainerTrainingDTO(trainerUsername, trainer.getUser().getFirstName(),
+                trainer.getUser().getLastName(), trainer.getUser().isActive(), trainingDate, duration, ActionType.ADD);
+        messageSenderService.sendMessage(NAME_OF_QUEUE_MAIN_TO_MICROSERVICE, dto);
     }
 
     @Transactional
@@ -69,9 +74,10 @@ public class TrainingService {
         return TrainingMapper.toListForTrainee(trainings);
     }
 
-    public List<TrainerTrainingDTO> findAllTrainings() {
-        List<TrainerTrainingDTO> trainingRecordDTOList = trainerRepository.findTrainerTrainings();
-        log.info("Return list of all trainings to microservice, {} trainings", trainingRecordDTOList.size());
-        return trainingRecordDTOList;
+    @PostConstruct
+    public void findAllTrainings() {
+        List<TrainerTrainingDTO> dtoList = trainerRepository.findTrainerTrainings();
+        dtoList.forEach(dto -> messageSenderService.sendMessage(NAME_OF_QUEUE_MAIN_TO_MICROSERVICE, dto));
+        log.info("Send all trainings to microservice for create DB, {} trainings", dtoList.size());
     }
 }

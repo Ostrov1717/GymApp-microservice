@@ -1,29 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
 
-    <!-- Аппендер для вывода логов в консоль -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} [transId=%X{transactionId}] : %msg%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%15.15thread] %-5level %-36.36logger [transId=%X{transactionId:-none}]: %msg%n</pattern>
         </encoder>
     </appender>
 
-    <!-- Логгирование для пакета org.example.gym -->
     <logger name="org.example.gym" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE"/>
     </logger>
 
-    <!-- Логгирование для пакета Spring (уменьшение уровня логов) -->
     <logger name="org.springframework" level="INFO" additivity="false">
         <appender-ref ref="CONSOLE"/>
     </logger>
 
-    <!-- Логгирование Hibernate (уменьшение уровня логов) -->
     <logger name="org.hibernate" level="WARN">
         <appender-ref ref="CONSOLE"/>
     </logger>
 
-    <!-- Корневой логгер -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
     </root>

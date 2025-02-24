@@ -2,6 +2,7 @@ package org.example.gym.domain.trainer.repository;
 
 import org.example.gym.domain.trainer.entity.Trainer;
 import org.example.shareddto.TrainerTrainingDTO;
+import org.example.shareddto.ActionType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -26,7 +27,8 @@ public interface TrainerRepository extends JpaRepository<Trainer, Long> {
         u.lastName,
         u.active,
         t.trainingDate,
-        t.trainingDuration
+        t.trainingDuration,
+        'ADD'
     )
     FROM Trainer tr
     JOIN tr.user u
