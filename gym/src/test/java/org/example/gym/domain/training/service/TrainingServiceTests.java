@@ -1,6 +1,7 @@
 package org.example.gym.domain.training.service;
 
 
+import org.example.gym.domain.messaging.MessageSenderService;
 import org.example.gym.domain.trainee.entity.Trainee;
 import org.example.gym.domain.trainer.entity.Trainer;
 import org.example.gym.domain.training.dto.TrainingDTO;
@@ -36,6 +37,8 @@ public class TrainingServiceTests {
     private TraineeRepository traineeRepository;
     @Mock
     private TrainerRepository trainerRepository;
+    @Mock
+    private MessageSenderService messageSenderService;
     @InjectMocks
     private TrainingService trainingService;
     @BeforeEach
@@ -58,6 +61,7 @@ public class TrainingServiceTests {
         when(traineeRepository.findByUserUsername(traineeUsername)).thenReturn(Optional.of(trainee));
         when(trainerRepository.findByUserUsername(trainerUsername)).thenReturn(Optional.of(trainer));
         when(trainingRepository.save(any(Training.class))).thenReturn(expectedTraining);
+        doNothing().when(messageSenderService).sendMessage(anyString(),any());
 
         trainingService.create(traineeUsername, trainerUsername, trainingName, trainingDate, duration);
 

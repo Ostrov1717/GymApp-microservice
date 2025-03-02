@@ -74,7 +74,7 @@ public class TrainingService {
         return TrainingMapper.toListForTrainee(trainings);
     }
 
-    @PostConstruct
+//    @PostConstruct
     public void findAllTrainings() {
         List<TrainerTrainingDTO> dtoList = trainerRepository.findTrainerTrainings();
         dtoList.forEach(dto -> messageSenderService.sendMessage(NAME_OF_QUEUE_MAIN_TO_MICROSERVICE, dto));

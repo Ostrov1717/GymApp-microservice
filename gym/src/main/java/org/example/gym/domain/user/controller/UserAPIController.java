@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.gym.domain.user.dto.JwtAuthenticationResponse;
 import org.example.gym.domain.user.dto.UserDTO;
 import org.example.gym.domain.user.service.UserService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
@@ -24,6 +25,7 @@ public class UserAPIController {
     //  3. Login (GET method)
     @GetMapping(USER_LOGIN)
     public void login() {
+        log.info("GET request to /login");
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         log.info("GET request to /login with username={}", userDetails.getUsername());
         log.info("Request successful. Username authenticated.");
@@ -32,8 +34,8 @@ public class UserAPIController {
     //    4. Change Login (PUT method)
     @PutMapping(USER_CHANGE_LOGIN)
     public void changeLogin(@Valid @RequestBody UserDTO.Request.ChangeLogin dto) {
+        log.info("PUT request to /change-login username= with new password: {}.",dto.getNewPassword());
         UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        log.info("PUT request to /change-login username={} with new password.", userDetails.getUsername());
         userService.changePassword(userDetails.getUsername(), dto.getNewPassword());
         log.info("Request successful. Password is changed.");
     }

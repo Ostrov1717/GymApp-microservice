@@ -8,6 +8,9 @@ import org.slf4j.MDC;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.stereotype.Service;
 
+import static org.example.shareddto.SharedConstants.TRANSACTION_ID;
+import static org.example.shareddto.SharedConstants.TYPE_OF_REQUEST;
+
 @Service
 @RequiredArgsConstructor
 public class MessageSenderService {
@@ -17,10 +20,10 @@ public class MessageSenderService {
     public void sendMessage(String queueName, TrainerTrainingDTO dto) {
         try {
             String jsonMessage = objectMapper.writeValueAsString(dto);
-            String transactionId=MDC.get("transactionId")==null?java.util.UUID.randomUUID().toString():MDC.get("transactionId");
-            MDC.put("transactionId",transactionId);
+            String transactionId=MDC.get(TRANSACTION_ID)==null?java.util.UUID.randomUUID().toString():MDC.get(TRANSACTION_ID);
+            MDC.put(TRANSACTION_ID,transactionId);
             jmsTemplate.convertAndSend(queueName, jsonMessage, msg -> {
-                msg.setStringProperty("transactionId", transactionId);
+                msg.setStringProperty(TRANSACTION_ID, transactionId);
                 return msg;
             });
         } catch (JsonProcessingException e) {
@@ -30,8 +33,8 @@ public class MessageSenderService {
 
     public void sendRequest(String queueName, String typeOfRequest, String trainerUsername) {
         jmsTemplate.convertAndSend(queueName, trainerUsername, msg -> {
-            msg.setStringProperty("type_of_request", typeOfRequest);
-            msg.setStringProperty("transactionId", MDC.get("transactionId"));
+            msg.setStringProperty(TYPE_OF_REQUEST, typeOfRequest);
+            msg.setStringProperty(TRANSACTION_ID, MDC.get(TRANSACTION_ID));
             return msg;
         });
     }

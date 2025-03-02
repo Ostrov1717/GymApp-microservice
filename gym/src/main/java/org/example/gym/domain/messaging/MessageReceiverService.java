@@ -23,8 +23,8 @@ public class MessageReceiverService {
     @JmsListener(destination = NAME_OF_QUEUE_MICROSERVICE_TO_MAIN)
     public void receiveMessage(Message message) {
         try {
-            String transactionId = message.getStringProperty("transactionId");
-            MDC.put("transactionId", transactionId);
+            String transactionId = message.getStringProperty(TRANSACTION_ID);
+            MDC.put(TRANSACTION_ID, transactionId);
             if (message instanceof TextMessage textMessage) {
                 String jsonMessage = textMessage.getText();
                 TrainerWorkingHoursDTO dto = objectMapper.readValue(jsonMessage, TrainerWorkingHoursDTO.class);
@@ -38,8 +38,8 @@ public class MessageReceiverService {
 
     @JmsListener(destination = DLQ)
     public void receiveDeadQueueLetters(Message message) throws JMSException {
-        String transactionId = message.getStringProperty("transactionId");
-        MDC.put("transactionId", transactionId);
+        String transactionId = message.getStringProperty(TRANSACTION_ID);
+        MDC.put(TRANSACTION_ID, transactionId);
         if (message instanceof TextMessage textMessage) {
             String jsonMessage = textMessage.getText();
         log.warn("Letter from DEAD LETTER QUEUE !!!");

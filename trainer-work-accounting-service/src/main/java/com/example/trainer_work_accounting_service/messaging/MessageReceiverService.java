@@ -1,7 +1,6 @@
 package com.example.trainer_work_accounting_service.messaging;
 
-import com.example.trainer_work_accounting_service.service.TrainingDurationService;
-import com.example.trainer_work_accounting_service.service.TrainingRecordService;
+import com.example.trainer_work_accounting_service.service.TrainerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.jms.JMSException;
 import jakarta.jms.Message;
@@ -19,52 +18,45 @@ import static org.example.shareddto.SharedConstants.*;
 @Slf4j
 @RequiredArgsConstructor
 public class MessageReceiverService {
-    private final TrainingRecordService trainingRecordService;
-    private final TrainingDurationService trainingDurationService;
+    private final TrainerService trainerService;
     private final ObjectMapper objectMapper;
 
     @JmsListener(destination = NAME_OF_QUEUE_MAIN_TO_MICROSERVICE)
     public void receiveMessageOneTraining(Message message) {
         try {
-            String transactionId = message.getStringProperty("transactionId");
-            MDC.put("transactionId", transactionId);
+            String transactionId = message.getStringProperty(TRANSACTION_ID);
+            MDC.put(TRANSACTION_ID, transactionId);
             if (message instanceof TextMessage textMessage) {
                 String jsonMessage = textMessage.getText();
                 TrainerTrainingDTO dto = objectMapper.readValue(jsonMessage, TrainerTrainingDTO.class);
-                log.info("Received message from main application: " + dto);
+                log.info("Received message from main application (one training): " + dto);
                 switch (dto.action()) {
-                    case ADD -> {
-                        trainingRecordService.addTrainingRecord(dto);
-                        trainingDurationService.addTraining(dto);
-                    }
-                    case DELETE -> {
-                        trainingRecordService.deleteTrainingRecord(dto);
-                        trainingDurationService.addTraining(dto);
-                    }
+                    case ADD -> trainerService.addTraining(dto);
+                    case DELETE -> trainerService.deleteTraining(dto);
                 }
             }
         } catch (Exception e) {
-            log.error("Error of deserializing JSON: " + e.getMessage());
+            log.error("Error processing received message: " + e.getMessage());
         }
     }
 
     @JmsListener(destination = NAME_OF_QUEUE_MAIN_TO_MICROSERVICE_REQUEST)
     public void receiveMainAppRequest(Message message) {
         try {
-            String transactionId = message.getStringProperty("transactionId");
-            String type = message.getStringProperty("type_of_request");
-            MDC.put("transactionId", transactionId);
+            String transactionId = message.getStringProperty(TRANSACTION_ID);
+            String type = message.getStringProperty(TYPE_OF_REQUEST);
+            MDC.put(TRANSACTION_ID, transactionId);
             if (message instanceof TextMessage textMessage) {
                 String trainerUsername = textMessage.getText();
                 log.info("Received request from main application about: " + trainerUsername);
                 if (type.equals(TYPE_OF_REQUEST_1)) {
-                    trainingDurationService.getTrainingSummaryByUsername(trainerUsername);
+                    trainerService.getTrainingSummaryByUsername(trainerUsername);
                 } else {
                     throw new IllegalArgumentException("No such service in microservice!");
                 }
             }
         } catch (JMSException e) {
-            log.error("Error of deserializing JSON: " + e.getMessage());
+            log.error("Error processing received message: " + e.getMessage());
         }
     }
 }

@@ -5,6 +5,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.example.gym.common.utils.validators.DateTimeRange;
+import org.example.gym.common.utils.validators.MinDuration;
 import org.example.gym.domain.training.entity.TrainingType;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -57,6 +60,7 @@ public enum TrainingDTO {
 
         @Data
         @AllArgsConstructor
+        @NoArgsConstructor
         @Schema(description = "Request DTO contains details for creation trainings")
         public static class NewTraining implements TraineeName, TrainerName, TrainingName, TrainingDate, TrainingDuration {
             @NotBlank(message = "Trainee username is required")
@@ -69,9 +73,11 @@ public enum TrainingDTO {
             @Schema(description = "Training name", example = "Yoga evening class")
             String trainingName;
             @NotNull(message = "Training date is required")
+            @DateTimeRange(startYear = 2000, endYear = 2100)
             @Schema(description = "Date and time of training", example = "1990-01-02T19:00")
             LocalDateTime trainingDate;
             @NotNull(message = "Training duration is required")
+            @MinDuration(600)
             @Schema(description = "Duration of training", example = "PT1H")
             Duration trainingDuration;
         }

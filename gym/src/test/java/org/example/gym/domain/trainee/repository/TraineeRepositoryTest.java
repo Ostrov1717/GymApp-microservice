@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
@@ -19,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@TestPropertySource(locations = "classpath:application-test.properties")
 class TraineeRepositoryTest {
 
     @Autowired
@@ -39,7 +41,7 @@ class TraineeRepositoryTest {
         assertEquals(trainee.get().getUser().getFirstName(),FIRST_NAME);
         assertEquals(trainee.get().getUser().getLastName(),LAST_NAME);
         assertEquals(trainee.get().getUser().getPassword(),PASSWORD);
-        assertEquals(trainee.get().getUser().isActive(),false);
+        assertFalse(trainee.get().getUser().isActive());
         assertEquals(trainee.get().getAddress(),ADDRESS);
         assertEquals(trainee.get().getDateOfBirth(),DATE_OF_BIRTH);
     }
