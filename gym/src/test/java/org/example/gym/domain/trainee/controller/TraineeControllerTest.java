@@ -3,6 +3,7 @@ package org.example.gym.domain.trainee.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.example.gym.common.exception.AuthenticationException;
+import org.example.gym.config.ComponentTest;
 import org.example.gym.domain.trainee.dto.TraineeDTO;
 import org.example.gym.domain.trainee.service.TraineeService;
 import org.example.gym.domain.trainer.dto.TrainerDTO;
