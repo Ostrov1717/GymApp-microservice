@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-public class TrainerServiceTests {
+public class TrainerServiceMicroTests {
 
     @Mock
     private TrainerRepository trainerRepository;

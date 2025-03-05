@@ -84,7 +84,7 @@ public enum TrainingDTO {
 
         @Data
         @Schema(description = "Request DTO contains details about trainings for trainee")
-        public static class TraineeTrains implements TraineeName, PeriodFrom, PeriodTo, TrainerName, TrainingSpecial {
+        public static class TraineeTrains implements TraineeName, PeriodFrom, PeriodTo, TrainerName {
             @NotBlank(message = "Trainee username is required")
             @Schema(description = "Username of the Trainee", example = "Olga.Kurilenko")
             String traineeUsername;
@@ -96,13 +96,13 @@ public enum TrainingDTO {
             LocalDateTime periodTo;
             @Schema(description = "Username of the Trainer", example = "Monica.Dobs")
             String trainerUsername;
-            @Schema(description = "Training type of training", example = "{\"id\": 1, \"trainingType\": \"YOGA\"}")
-            TrainingType trainingType;
+//            @Schema(description = "Training type of training", example = "{\"id\": 1, \"trainingType\": \"YOGA\"}")
+//            TrainingType trainingType;
         }
 
         @Data
         @Schema(description = "Request DTO contains details about trainings for trainer")
-        public static class TrainerTrainings implements TrainerName, PeriodFrom, PeriodTo, TraineeName, TrainingSpecial {
+        public static class TrainerTrainings implements TrainerName, PeriodFrom, PeriodTo, TraineeName {
             @NotBlank(message = "Trainer username is required")
             @Schema(description = "Username of the Trainer", example = "Monica.Dobs")
             String trainerUsername;
@@ -112,8 +112,8 @@ public enum TrainingDTO {
             LocalDateTime periodTo;
             @Schema(description = "Username of the Trainee", example = "Olga.Kurilenko")
             String traineeUsername;
-            @Schema(description = "Training type of training", example = "{\"id\": 1, \"trainingType\": \"YOGA\"}")
-            TrainingType trainingType;
+//            @Schema(description = "Training type of training", example = "{\"id\": 1, \"trainingType\": \"YOGA\"}")
+//            TrainingType trainingType;
         }
     }
 

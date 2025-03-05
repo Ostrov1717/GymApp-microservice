@@ -6,6 +6,9 @@ import java.time.LocalDateTime;
 public class TestConstants {
     public static String ID = "1";
     public static String USERNAME = "Brad.Pitt";
+    public static String TRAINER_USERNAME_AUTHEN = "Monica.Dobs";
+    public static String TRAINER_FIRST_NAME_AUTHEN = "Monica";
+    public static String TRAINER_LAST_NAME_AUTHEN = "Dobs";
     public static String FIRST_NAME = "Brad";
     public static String LAST_NAME = "Pitt";
     public static boolean ACTIVE = true;
@@ -37,5 +40,6 @@ public class TestConstants {
             "}";
 
     public static String TRANSACTIONAL_ID = "12345";
+
 
 }

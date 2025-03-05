@@ -1,7 +1,3 @@
-<configuration>
-    <root level="OFF">
-    </root>
-</configuration>
 <!--<configuration>-->
 <!--    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">-->
 <!--        <encoder>-->
@@ -14,4 +10,10 @@
 <!--    </root>-->
 
 <!--    <logger name="org.springframework" level="INFO"/>-->
+<!--&lt;!&ndash;    <logger name="org.apache.activemq.artemis" level="DEBUG"/>&ndash;&gt;-->
 <!--</configuration>-->
+<configuration>
+<!-- Отключаем все логирование для тестов -->
+<root level="OFF">
+</root>
+</configuration>

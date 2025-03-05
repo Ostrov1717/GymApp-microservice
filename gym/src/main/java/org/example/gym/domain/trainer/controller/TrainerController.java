@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 
 import static org.example.gym.common.ApiUrls.*;
@@ -99,13 +100,20 @@ public class TrainerController {
     public TrainerWorkingHoursDTO getTrainerWorkingHours() {
         String trainerUsername = getAuthenticatedUsername();
         log.info("GET request to " + WORKING_HOURS + " with trainer username={}", trainerUsername);
-        log.info("Request to microservice");
-        messageSenderService.sendRequest(NAME_OF_QUEUE_MAIN_TO_MICROSERVICE_REQUEST, TYPE_OF_REQUEST_1, trainerUsername);
-        return responseStorageService.getResponseFuture(trainerUsername)
-                .orTimeout(10, TimeUnit.SECONDS)
-                .exceptionally(ex -> {
-                    throw new ServiceUnavailableException("There isn't answer from microservice for trainer: " + trainerUsername);
-                }).join();
+        CompletableFuture<TrainerWorkingHoursDTO> future = responseStorageService.getResponseFuture(trainerUsername);
+        log.info("Future:{}",future);
+        if (future.isDone()) {
+            log.info("Returning cached response for trainer: " + trainerUsername);
+            return future.join();
+        } else {
+            log.info("Request to microservice");
+            messageSenderService.sendRequest(NAME_OF_QUEUE_MAIN_TO_MICROSERVICE_REQUEST, TYPE_OF_REQUEST_1, trainerUsername);
+            return responseStorageService.getResponseFuture(trainerUsername)
+                    .orTimeout(10, TimeUnit.SECONDS)
+                    .exceptionally(ex -> {
+                        throw new ServiceUnavailableException("There isn't answer from microservice for trainer: " + trainerUsername);
+                    }).join();
+        }
     }
 
     @GetMapping(TRAININGS_QOUNTITY)

@@ -52,7 +52,7 @@ public class TrainingControllerTest {
                 new TrainingDTO.Response.TrainingProfileForTrainee(TRAINING_NAME, PERIOD_TO, TRAINING_TYPE, DURATION, TRAINER_USERNAME),
                 new TrainingDTO.Response.TrainingProfileForTrainee("Yoga morning class",
                         PERIOD_FROM, new TrainingType("YOGA"), DURATION, "Tomas.Kuk"));
-        when(trainingService.findTraineeList(TRAINEE_USERNAME, PERIOD_FROM, PERIOD_TO, TRAINER_USERNAME, String.valueOf(TRAINING_TYPE))).thenReturn(trainings);
+        when(trainingService.findTraineeList(TRAINEE_USERNAME, PERIOD_FROM, PERIOD_TO, TRAINER_USERNAME)).thenReturn(trainings);
         mockMvc.perform(get(TRAININGS_BASE + GET_TRAINEE_TRAININGS)
                         .param("traineeUsername", TRAINEE_USERNAME)
                         .param("periodFrom", PERIOD_FROM.toString())
@@ -72,7 +72,7 @@ public class TrainingControllerTest {
                 .andExpect(jsonPath("$[1].trainerUsername").value("Tomas.Kuk"))
                 .andExpect(jsonPath("$[1].trainingDate").value("2024-01-01T09:15:00"));
         verify(trainingService, times(1))
-                .findTraineeList(TRAINEE_USERNAME, PERIOD_FROM, PERIOD_TO, TRAINER_USERNAME, String.valueOf(TRAINING_TYPE));
+                .findTraineeList(TRAINEE_USERNAME, PERIOD_FROM, PERIOD_TO, TRAINER_USERNAME);
     }
 
     @Test
@@ -89,7 +89,6 @@ public class TrainingControllerTest {
                         .param("periodFrom", PERIOD_FROM.toString())
                         .param("periodTo", PERIOD_TO.toString())
                         .param("traineeUsername", TRAINEE_USERNAME)
-                        .param("trainingType", TRAINING_TYPE.getTrainingType())
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED))
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))

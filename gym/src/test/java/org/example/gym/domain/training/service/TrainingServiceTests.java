@@ -3,16 +3,15 @@ package org.example.gym.domain.training.service;
 
 import org.example.gym.domain.messaging.MessageSenderService;
 import org.example.gym.domain.trainee.entity.Trainee;
+import org.example.gym.domain.trainee.repository.TraineeRepository;
 import org.example.gym.domain.trainer.entity.Trainer;
+import org.example.gym.domain.trainer.repository.TrainerRepository;
 import org.example.gym.domain.training.dto.TrainingDTO;
 import org.example.gym.domain.training.dto.TrainingMapper;
 import org.example.gym.domain.training.entity.Training;
 import org.example.gym.domain.training.entity.TrainingType;
-import org.example.gym.domain.user.entity.User;
-import org.example.gym.domain.trainee.repository.TraineeRepository;
-import org.example.gym.domain.trainer.repository.TrainerRepository;
 import org.example.gym.domain.training.repository.TrainingRepository;
-import org.example.gym.domain.training.service.TrainingService;
+import org.example.gym.domain.user.entity.User;
 import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -137,7 +136,7 @@ public class TrainingServiceTests {
             );
             mockedMapper.when(() -> TrainingMapper.toListForTrainee(trainings)).thenReturn(trainingProfiles);
 
-            List<TrainingDTO.Response.TrainingProfileForTrainee> result = trainingService.findTraineeList(traineeUsername, fromDate, toDate, trainerName, trainingType);
+            List<TrainingDTO.Response.TrainingProfileForTrainee> result = trainingService.findTraineeList(traineeUsername, fromDate, toDate, trainerName);
 
             verify(trainingRepository, times(1)).findTrainingsByTraineeAndCriteria(traineeUsername, fromDate, toDate, trainerName);
             mockedMapper.verify(() -> TrainingMapper.toListForTrainee(trainings), times(1));

@@ -10,31 +10,29 @@ import java.time.LocalDateTime;
 import java.util.List;
 @Repository
 public interface TrainingRepository extends JpaRepository<Training, Long> {
-    @Query(value="""
-        SELECT t
-        FROM training_list t
-        WHERE (t.trainer_username = :username)
-          AND (:fromDate IS NULL OR t.training_date >= :fromDate)
-          AND (:toDate IS NULL OR t.training_date <= :toDate)
-          AND (:traineeName IS NULL OR t.trainee_username LIKE %:traineeName%)
-    """, nativeQuery = true)
+@Query("""
+    SELECT t FROM Training t
+    WHERE t.trainer.user.username = :trainerUsername
+    AND t.trainingDate >= :fromDate
+    AND t.trainingDate <= :toDate
+    AND (:traineeUsername IS NULL OR t.trainee.user.username = :traineeUsername)
+""")
     List<Training> findTrainingsByTrainerAndCriteria(
-            @Param("username") String username,
+            @Param("trainerUsername") String username,
             @Param("fromDate") LocalDateTime fromDate,
             @Param("toDate") LocalDateTime toDate,
-            @Param("traineeName") String traineeName);
+            @Param("traineeUsername") String traineeName);
 
-    @Query(value="""
-        SELECT t
-        FROM training_list t
-        WHERE (t.trainee_username = :username)
-          AND (:fromDate IS NULL OR t.training_date >= :fromDate)
-          AND (:toDate IS NULL OR t.training_date <= :toDate)
-          AND (:trainerName IS NULL OR t.trainer_username LIKE %:trainerName%)
-    """,nativeQuery = true)
+    @Query("""
+    SELECT t FROM Training t
+    WHERE t.trainee.user.username = :traineeUsername
+    AND t.trainingDate >= :fromDate
+    AND t.trainingDate <= :toDate
+    AND (:trainerUsername IS NULL OR t.trainer.user.username = :trainerUsername)
+""")
     List<Training> findTrainingsByTraineeAndCriteria(
-            @Param("username") String username,
+            @Param("traineeUsername") String username,
             @Param("fromDate") LocalDateTime periodFrom,
             @Param("toDate") LocalDateTime periodTo,
-            @Param("trainerName") String trainerName);
+            @Param("trainerUsername") String trainerName);
 }
