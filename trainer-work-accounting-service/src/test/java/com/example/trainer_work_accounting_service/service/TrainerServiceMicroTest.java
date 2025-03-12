@@ -1,11 +1,13 @@
 package com.example.trainer_work_accounting_service.service;
 
+import com.example.trainer_work_accounting_service.TestConstants;
 import com.example.trainer_work_accounting_service.domain.Trainer;
-import com.example.trainer_work_accounting_service.messaging.MessageSenderService;
-import com.example.trainer_work_accounting_service.repository.TrainerRepository;
+import com.example.trainer_work_accounting_service.messaging.MessageSenderServiceMicro;
+import com.example.trainer_work_accounting_service.repository.TrainerRepositoryMicro;
 import org.example.shareddto.ActionType;
 import org.example.shareddto.TrainerTrainingDTO;
 import org.example.shareddto.TrainerWorkingHoursDTO;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -18,48 +20,47 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.trainer_work_accounting_service.TestConstants.*;
 import static org.example.shareddto.SharedConstants.NAME_OF_QUEUE_MICROSERVICE_TO_MAIN;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class TrainerServiceTest {
+public class TrainerServiceMicroTest {
     @Mock
-    private TrainerRepository trainerRepository;
+    private TrainerRepositoryMicro trainerRepositoryMicro;
     @Mock
-    private MessageSenderService messageSenderService;
+    private MessageSenderServiceMicro messageSenderServiceMicro;
     @InjectMocks
-    private TrainerService trainerService;
+    private TrainerServiceMicro trainerServiceMicro;
 
     @Test
     void addTraining_TrainerExists_UpdateTrainingsDuration() {
-        TrainerTrainingDTO trainingDTO = new TrainerTrainingDTO(USERNAME, FIRST_NAME, LAST_NAME, ACTIVE, TRAINING_DATE, DURATION, ActionType.ADD);
+        TrainerTrainingDTO trainingDTO = new TrainerTrainingDTO(TestConstants.USERNAME, TestConstants.FIRST_NAME, TestConstants.LAST_NAME, TestConstants.ACTIVE, TestConstants.TRAINING_DATE, TestConstants.DURATION, ActionType.ADD);
         Trainer.YearSummary yearSummary = new Trainer.YearSummary(trainingDTO.trainingDate().getYear(),
                 List.of(new Trainer.MonthSummary(trainingDTO.trainingDate().getMonth().toString(),
                         trainingDTO.trainingDuration().getSeconds())));
-        Trainer trainer = new Trainer(ID, USERNAME, FIRST_NAME, LAST_NAME, ACTIVE, new ArrayList<>(List.of(yearSummary)));
+        Trainer trainer = new Trainer(TestConstants.ID, TestConstants.USERNAME, TestConstants.FIRST_NAME, TestConstants.LAST_NAME, TestConstants.ACTIVE, new ArrayList<>(List.of(yearSummary)));
 
-        when(trainerRepository.findByUsername(trainingDTO.username())).thenReturn(Optional.of(trainer));
+        when(trainerRepositoryMicro.findByUsername(trainingDTO.username())).thenReturn(Optional.of(trainer));
 
-        trainerService.addTraining(trainingDTO);
+        trainerServiceMicro.addTraining(trainingDTO);
 
         Trainer.MonthSummary monthSummary = trainer.getYearSummaries().get(0).getMonthDurationList().get(0);
         assertEquals(trainingDTO.trainingDuration().getSeconds() * 2, monthSummary.getDuration());
-        verify(trainerRepository).save(trainer);
+        verify(trainerRepositoryMicro).save(trainer);
     }
 
     @Test
     void addTraining_TrainerDoesNotExist_CreateNewTrainer() {
-        TrainerTrainingDTO trainingDTO = new TrainerTrainingDTO(USERNAME, FIRST_NAME, LAST_NAME, ACTIVE, TRAINING_DATE, DURATION, ActionType.ADD);
-        when(trainerRepository.findByUsername(trainingDTO.username())).thenReturn(Optional.empty());
+        TrainerTrainingDTO trainingDTO = new TrainerTrainingDTO(TestConstants.USERNAME, TestConstants.FIRST_NAME, TestConstants.LAST_NAME, TestConstants.ACTIVE, TestConstants.TRAINING_DATE, TestConstants.DURATION, ActionType.ADD);
+        when(trainerRepositoryMicro.findByUsername(trainingDTO.username())).thenReturn(Optional.empty());
 
-        trainerService.addTraining(trainingDTO);
+        trainerServiceMicro.addTraining(trainingDTO);
 
         ArgumentCaptor<Trainer> trainerCaptor = ArgumentCaptor.forClass(Trainer.class);
 
-        verify(trainerRepository).save(trainerCaptor.capture());
+        verify(trainerRepositoryMicro).save(trainerCaptor.capture());
         Trainer savedTrainer = trainerCaptor.getValue();
         Trainer.YearSummary yearSummary = savedTrainer.getYearSummaries().get(0);
         Trainer.MonthSummary monthSummary = yearSummary.getMonthDurationList().get(0);
@@ -72,43 +73,43 @@ public class TrainerServiceTest {
 
     @Test
     void deleteTraining_TrainerExists_ReduceTrainingsDuration() {
-        TrainerTrainingDTO trainingDTO = new TrainerTrainingDTO(USERNAME, FIRST_NAME, LAST_NAME, ACTIVE, TRAINING_DATE, Duration.parse("PT1H"), ActionType.DELETE);
+        TrainerTrainingDTO trainingDTO = new TrainerTrainingDTO(TestConstants.USERNAME, TestConstants.FIRST_NAME, TestConstants.LAST_NAME, TestConstants.ACTIVE, TestConstants.TRAINING_DATE, Duration.parse("PT1H"), ActionType.DELETE);
         Trainer.YearSummary yearSummary = new Trainer.YearSummary(trainingDTO.trainingDate().getYear(),
                 List.of(new Trainer.MonthSummary(trainingDTO.trainingDate().getMonth().toString(),
                         trainingDTO.trainingDuration().getSeconds())));
-        Trainer trainer = new Trainer(ID, USERNAME, FIRST_NAME, LAST_NAME, ACTIVE, new ArrayList<>(List.of(yearSummary)));
+        Trainer trainer = new Trainer(TestConstants.ID, TestConstants.USERNAME, TestConstants.FIRST_NAME, TestConstants.LAST_NAME, TestConstants.ACTIVE, new ArrayList<>(List.of(yearSummary)));
 
-        when(trainerRepository.findByUsername(trainingDTO.username())).thenReturn(Optional.of(trainer));
+        when(trainerRepositoryMicro.findByUsername(trainingDTO.username())).thenReturn(Optional.of(trainer));
 
-        trainerService.deleteTraining(trainingDTO);
+        trainerServiceMicro.deleteTraining(trainingDTO);
 
         Trainer.MonthSummary monthSummary = trainer.getYearSummaries().get(0).getMonthDurationList().get(0);
         assertEquals(0, monthSummary.getDuration());
-        verify(trainerRepository).save(trainer);
+        verify(trainerRepositoryMicro).save(trainer);
     }
 
     @Test
     void deleteTraining_TrainerDoesNotExist_Exception() {
-        TrainerTrainingDTO trainingDTO = new TrainerTrainingDTO(USERNAME, FIRST_NAME, LAST_NAME, ACTIVE, TRAINING_DATE, DURATION, ActionType.DELETE);
+        TrainerTrainingDTO trainingDTO = new TrainerTrainingDTO(TestConstants.USERNAME, TestConstants.FIRST_NAME, TestConstants.LAST_NAME, TestConstants.ACTIVE, TestConstants.TRAINING_DATE, TestConstants.DURATION, ActionType.DELETE);
 
-        when(trainerRepository.findByUsername(trainingDTO.username())).thenReturn(Optional.empty());
+        when(trainerRepositoryMicro.findByUsername(trainingDTO.username())).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> trainerService.deleteTraining(trainingDTO));
+                () -> trainerServiceMicro.deleteTraining(trainingDTO));
 
         assertEquals("Trainer not found for username: " + trainingDTO.username(), exception.getMessage());
-        verify(trainerRepository, never()).save(any());
+        verify(trainerRepositoryMicro, never()).save(any());
     }
 
     @Test
     void getTrainingSummaryByUsername_Success() {
-        Trainer trainer = new Trainer(ID, USERNAME, FIRST_NAME, LAST_NAME, ACTIVE, new ArrayList<>());
-        when(trainerRepository.findByUsername(USERNAME)).thenReturn(Optional.of(trainer));
+        Trainer trainer = new Trainer(TestConstants.ID, TestConstants.USERNAME, TestConstants.FIRST_NAME, TestConstants.LAST_NAME, TestConstants.ACTIVE, new ArrayList<>());
+        when(trainerRepositoryMicro.findByUsername(TestConstants.USERNAME)).thenReturn(Optional.of(trainer));
 
-        trainerService.getTrainingSummaryByUsername(USERNAME);
+        trainerServiceMicro.getTrainingSummaryByUsername(TestConstants.USERNAME);
 
         ArgumentCaptor<TrainerWorkingHoursDTO> dtoCaptor = ArgumentCaptor.forClass(TrainerWorkingHoursDTO.class);
-        verify(messageSenderService).sendMessage(eq(NAME_OF_QUEUE_MICROSERVICE_TO_MAIN), dtoCaptor.capture());
+        verify(messageSenderServiceMicro).sendMessage(eq(NAME_OF_QUEUE_MICROSERVICE_TO_MAIN), dtoCaptor.capture());
 
         TrainerWorkingHoursDTO sentDto = dtoCaptor.getValue();
         assertEquals(trainer.getUsername(), sentDto.username());
@@ -119,12 +120,12 @@ public class TrainerServiceTest {
 
     @Test
     void getTrainingSummaryByUsername_TrainerNotFound() {
-        when(trainerRepository.findByUsername(USERNAME)).thenReturn(Optional.empty());
+        when(trainerRepositoryMicro.findByUsername(TestConstants.USERNAME)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> trainerService.getTrainingSummaryByUsername(USERNAME));
+                () -> trainerServiceMicro.getTrainingSummaryByUsername(TestConstants.USERNAME));
 
-        assertEquals("Trainer not found for username: " + USERNAME, exception.getMessage());
-        verify(messageSenderService, never()).sendMessage(any(), any());
+        Assertions.assertEquals("Trainer not found for username: " + TestConstants.USERNAME, exception.getMessage());
+        verify(messageSenderServiceMicro, never()).sendMessage(any(), any());
     }
 }

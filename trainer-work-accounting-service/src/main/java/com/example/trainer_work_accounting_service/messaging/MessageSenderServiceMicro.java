@@ -14,7 +14,7 @@ import static org.example.shareddto.SharedConstants.TRANSACTION_ID;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class MessageSenderService {
+public class MessageSenderServiceMicro {
     private final JmsTemplate jmsTemplate;
     private final ObjectMapper objectMapper;
 

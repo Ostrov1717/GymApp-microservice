@@ -1,8 +1,8 @@
 package com.example.trainer_work_accounting_service.service;
 
 import com.example.trainer_work_accounting_service.domain.Trainer;
-import com.example.trainer_work_accounting_service.messaging.MessageSenderService;
-import com.example.trainer_work_accounting_service.repository.TrainerRepository;
+import com.example.trainer_work_accounting_service.messaging.MessageSenderServiceMicro;
+import com.example.trainer_work_accounting_service.repository.TrainerRepositoryMicro;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.example.shareddto.TrainerTrainingDTO;
@@ -20,22 +20,22 @@ import static org.example.shareddto.SharedConstants.NAME_OF_QUEUE_MICROSERVICE_T
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class TrainerService {
-    private final TrainerRepository trainerRepository;
-    private final MessageSenderService messageSenderService;
+public class TrainerServiceMicro {
+    private final TrainerRepositoryMicro trainerRepositoryMicro;
+    private final MessageSenderServiceMicro messageSenderServiceMicro;
 
     @Transactional
     public void addTraining(TrainerTrainingDTO trainingDTO) {
         Year trainingYear = Year.of(trainingDTO.trainingDate().getYear());
         Month trainingMonth = trainingDTO.trainingDate().getMonth();
 
-        Optional<Trainer> trainerOptional = trainerRepository.findByUsername(trainingDTO.username());
+        Optional<Trainer> trainerOptional = trainerRepositoryMicro.findByUsername(trainingDTO.username());
         if (trainerOptional.isPresent()) {
             Trainer trainer = trainerOptional.get();
             Trainer.YearSummary yearSummary = findOrCreateYearSummary(trainer, trainingYear);
             Trainer.MonthSummary monthSummary = findOrCreateMonthSummary(yearSummary, trainingMonth);
             monthSummary.setDuration(monthSummary.getDuration() + (trainingDTO.trainingDuration()).getSeconds());
-            trainerRepository.save(trainer);
+            trainerRepositoryMicro.save(trainer);
             log.info("The trainer's {} training data has been updated. + {} duration", trainingDTO.username(), trainingDTO.trainingDuration());
         } else {
             Trainer trainer = new Trainer(
@@ -48,7 +48,7 @@ public class TrainerService {
                             List.of(new Trainer.MonthSummary(trainingMonth.toString(),
                                     trainingDTO.trainingDuration().getSeconds()))))
             );
-            trainerRepository.save(trainer);
+            trainerRepositoryMicro.save(trainer);
             log.info("The trainer's {} training data has been added. + {} duration", trainingDTO.username(), trainingDTO.trainingDuration());
         }
     }
@@ -58,7 +58,7 @@ public class TrainerService {
         Year trainingYear = Year.of(trainingDTO.trainingDate().getYear());
         Month trainingMonth = trainingDTO.trainingDate().getMonth();
 
-        Optional<Trainer> trainerOptional = trainerRepository.findByUsername(trainingDTO.username());
+        Optional<Trainer> trainerOptional = trainerRepositoryMicro.findByUsername(trainingDTO.username());
         if (trainerOptional.isPresent()) {
             Trainer trainer = trainerOptional.get();
             Trainer.YearSummary yearSummary = findOrCreateYearSummary(trainer, trainingYear);
@@ -69,7 +69,7 @@ public class TrainerService {
             }
             monthSummary.setDuration(newDuration);
             log.info("The trainer's {} training data has been deleted. - {} duration.", trainingDTO.username(), trainingDTO.trainingDuration());
-            trainerRepository.save(trainer);
+            trainerRepositoryMicro.save(trainer);
         } else {
             throw new IllegalArgumentException("Trainer not found for username: " + trainingDTO.username());
         }
@@ -98,7 +98,7 @@ public class TrainerService {
     }
 
     public void getTrainingSummaryByUsername(String username) {
-        Optional<Trainer> trainerOptional = trainerRepository.findByUsername(username);
+        Optional<Trainer> trainerOptional = trainerRepositoryMicro.findByUsername(username);
         if (trainerOptional.isEmpty()) {
             throw new IllegalArgumentException("Trainer not found for username: " + username);
         }
@@ -118,6 +118,6 @@ public class TrainerService {
                 trainer.isActive(),
                 trainingsDuration
         );
-        messageSenderService.sendMessage(NAME_OF_QUEUE_MICROSERVICE_TO_MAIN, dto);
+        messageSenderServiceMicro.sendMessage(NAME_OF_QUEUE_MICROSERVICE_TO_MAIN, dto);
     }
 }

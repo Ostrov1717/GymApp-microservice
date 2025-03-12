@@ -12,7 +12,7 @@ import org.springframework.data.mongodb.core.index.Index;
 
 import java.util.Arrays;
 
-@Configuration
+//@Configuration
 @Slf4j
 public class MongoCleanupConfig {
 

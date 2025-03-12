@@ -29,8 +29,7 @@ public class TrainingController {
     public List<TrainingDTO.Response.TrainingProfileForTrainee> getTraineeTrainings(@Valid @ModelAttribute TrainingDTO.Request.TraineeTrains dto) {
         log.info("GET request to " + GET_TRAINEE_TRAININGS + " for trainee with username={}, period from {} to {}, trainer={}",
                 dto.getTraineeUsername(), dto.getPeriodFrom(), dto.getPeriodTo(), dto.getTrainerUsername());
-        return trainingService.findTraineeList(dto.getTraineeUsername(), dto.getPeriodFrom(), dto.getPeriodTo(), dto.getTrainerUsername(),
-                String.valueOf(dto.getTrainingType()));
+        return trainingService.findTraineeList(dto.getTraineeUsername(), dto.getPeriodFrom(), dto.getPeriodTo(), dto.getTrainerUsername());
     }
 
     //  13. Get Trainer Trainings List (GET method)

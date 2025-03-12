@@ -60,15 +60,21 @@ public class TrainingService {
 
     @Transactional
     public List<TrainingDTO.Response.TrainingProfileForTrainer> findTrainerList(String trainerUsername, LocalDateTime fromDate, LocalDateTime toDate, String traineeName) {
-        log.info("Search trainings for trainer: {}", trainerUsername);
+        fromDate = (fromDate != null) ? fromDate : LocalDateTime.of(2000, 1, 1, 0, 0);
+        toDate = (toDate != null) ? toDate : LocalDateTime.of(2099, 12, 31, 23, 59);
+        log.info("Searching trainings for trainer: {}, fromDate: {}, toDate: {}, trainee: {}",
+                trainerUsername, fromDate, toDate, traineeName);
         List<Training> trainings = trainingRepository.findTrainingsByTrainerAndCriteria(trainerUsername, fromDate, toDate, traineeName);
         log.info("Found {} trainings for trainer: {}", trainings.size(), trainerUsername);
         return TrainingMapper.toListForTrainer(trainings);
     }
 
     @Transactional
-    public List<TrainingDTO.Response.TrainingProfileForTrainee> findTraineeList(String traineeUsername, LocalDateTime fromDate, LocalDateTime toDate, String trainerName, String trainingType) {
-        log.info("Search trainings for trainee: {}", traineeUsername);
+    public List<TrainingDTO.Response.TrainingProfileForTrainee> findTraineeList(String traineeUsername, LocalDateTime fromDate, LocalDateTime toDate, String trainerName) {
+        fromDate = (fromDate != null) ? fromDate : LocalDateTime.of(2000, 1, 1, 0, 0);
+        toDate = (toDate != null) ? toDate : LocalDateTime.of(2099, 12, 31, 23, 59);
+        log.info("Searching trainings for trainee: {}, fromDate: {}, toDate: {}, trainee: {}",
+                traineeUsername, fromDate, toDate, trainerName);
         List<Training> trainings = trainingRepository.findTrainingsByTraineeAndCriteria(traineeUsername, fromDate, toDate, trainerName);
         log.info("Found {} trainings for trainee: {}", trainings.size(), traineeUsername);
         return TrainingMapper.toListForTrainee(trainings);
